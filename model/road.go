@@ -8,5 +8,5 @@ type Road struct {
 	Through       []int
 	SpeedLimit    int
 	Length        int
-	BiDirectional bool
+	BiDirectional int
 }

@@ -21,7 +21,7 @@ type (
 		AddRoad(road *model.Road) error
 		DeleteCity(id int) error
 		DeleteRoad(id int) error
-		GetPath()
+		GetPath(sourceID, destinationID int) error
 	}
 )
 
@@ -62,6 +62,6 @@ func (a *agencyService) DeleteRoad(id int) error {
 	return a.roadRepo.DeleteRoad(id)
 }
 
-func (a *agencyService) GetPath() {
-
+func (a *agencyService) GetPath(sourceID, destinationID int) error {
+	return nil
 }

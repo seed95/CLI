@@ -26,6 +26,10 @@ type (
 	}
 )
 
+var (
+	ErrInvalidInput = errors.New("invalid input")
+)
+
 const (
 	_ = iota
 	HelpAction
@@ -66,16 +70,26 @@ func (b *bundle) Run() error {
 		case HelpAction:
 			handleHelp()
 		case AddAction:
-			b.handleAdd()
+			err = b.handleAdd()
+			if err != nil {
+				return err
+			}
 		case DeleteAction:
-			b.handleDelete()
+			err = b.handleDelete()
+			if err != nil {
+				return err
+			}
 		case PathAction:
+			err = b.handlePath()
+			if err != nil {
+				return err
+			}
 		case ExitAction:
 			os.Exit(0)
 		default:
 			printInvalidInput()
-
 		}
+
 		printMainMenu()
 	}
 
@@ -96,18 +110,53 @@ func printInvalidInput() {
 	fmt.Println("Invalid input. Please enter 1 for more info.")
 }
 
-func printAddSelectModel() {
+func printSelectModel() {
 	fmt.Println("Select model:")
 	fmt.Println("1. City")
 	fmt.Println("2. Road")
 }
 
-func printAddSuccessful(model string, id int) {
-	fmt.Printf("%s with id=%d added!", model, id)
+// handleSelectModel print menu and return selected model
+func (b *bundle) handleSelectModel() (int, error) {
+
+	printSelectModel()
+
+	if b.scanner.Scan() {
+		num, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return 0, err
+		}
+
+		if num == CityModel || num == RoadModel {
+			return num, nil
+		} else {
+			return 0, ErrInvalidInput
+		}
+
+	}
+	return 0, b.scanner.Err()
+
 }
 
-func printAddNextAction(model string) {
+func (b *bundle) handleAddSuccessful(model string, id int) (int, error) {
+	fmt.Printf("%s with id=%d added!\n", model, id)
+	fmt.Println("1. Add another", model)
+	fmt.Println("2. Main Menu")
 
+	if b.scanner.Scan() {
+		num, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return 0, err
+		}
+
+		if num == 1 || num == 2 {
+			return num, nil
+		} else {
+			return 0, ErrInvalidInput
+		}
+
+	}
+	return 0, b.scanner.Err()
 }
 
 func handleHelp() {
@@ -115,102 +164,105 @@ func handleHelp() {
 }
 
 func (b *bundle) handleAdd() error {
-	printAddSelectModel()
-	if b.scanner.Scan() {
-		num, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return err
-		}
 
-		switch num {
-		case CityModel:
-			city, err := b.getCityModel()
-			if err != nil {
-				return err
-			}
-			b.agencyService.AddCity(city)
-			printAddSuccessful("City", city.ID)
-		case RoadModel:
-			road, err := b.getRoadModel()
-			if err != nil {
-				return err
-			}
-			b.agencyService.AddRoad(road)
-			printAddSuccessful("Road", road.ID)
-		default:
-			return errors.New("invalid input")
-		}
-
+	selectedModel, err := b.handleSelectModel()
+	if err != nil {
+		return err
 	}
-	return b.scanner.Err()
+
+	switch selectedModel {
+	case CityModel:
+		return b.handleAddCity()
+	case RoadModel:
+		return b.handleAddRoad()
+	}
+	return errors.New("invalid input")
 }
 
-func (b *bundle) getCityModel() (*model.City, error) {
-	city := &model.City{}
+func (b *bundle) handleAddCity() error {
+	city, err := b.getCityModel()
+	if err != nil {
+		return err
+	}
+	err = b.agencyService.AddCity(city)
+	if err != nil {
+		return err
+	}
+	nextStep, err := b.handleAddSuccessful("City", city.ID)
+	if err != nil {
+		return err
+	}
+	if nextStep == 1 { // Add another City selected
+		return b.handleAddCity()
+	} else { // Main menu selected
+		return nil
+	}
+}
+
+func (b *bundle) getCityModel() (city *model.City, err error) {
+	city = &model.City{}
 
 	fmt.Println("id=?")
-	if b.scanner.Scan() {
-		id, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		city.ID = id
-	} else {
-		return nil, b.scanner.Err()
+	city.ID, err = b.readIntInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("name=?")
-	if b.scanner.Scan() {
-		city.Name = b.scanner.Text()
-	} else {
-		return nil, b.scanner.Err()
+	city.Name, err = b.readStringInput()
+	if err != nil {
+		return nil, err
 	}
 
 	return city, nil
 
 }
 
-func (b *bundle) getRoadModel() (*model.Road, error) {
-	road := &model.Road{}
+func (b *bundle) handleAddRoad() error {
+	road, err := b.getRoadModel()
+	if err != nil {
+		return err
+	}
+	err = b.agencyService.AddRoad(road)
+	if err != nil {
+		return err
+	}
+	nextStep, err := b.handleAddSuccessful("Road", road.ID)
+	if err != nil {
+		return err
+	}
+	if nextStep == 1 { // Add another Road selected
+		return b.handleAddRoad()
+	} else { // Main menu selected
+		return nil
+	}
+}
+
+func (b *bundle) getRoadModel() (road *model.Road, err error) {
+	road = &model.Road{}
 
 	fmt.Println("id=?")
-	if b.scanner.Scan() {
-		id, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		road.ID = id
-	} else {
-		return nil, b.scanner.Err()
+	road.ID, err = b.readIntInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("name=?")
-	if b.scanner.Scan() {
-		road.Name = b.scanner.Text()
-	} else {
-		return nil, b.scanner.Err()
+	road.Name, err = b.readStringInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("from=?")
-	if b.scanner.Scan() {
-		from, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		road.From = from
-	} else {
-		return nil, b.scanner.Err()
+	road.From, err = b.readIntInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("to=?")
-	if b.scanner.Scan() {
-		to, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		road.To = to
-	} else {
-		return nil, b.scanner.Err()
+	road.To, err = b.readIntInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("through=?")
@@ -230,46 +282,102 @@ func (b *bundle) getRoadModel() (*model.Road, error) {
 	}
 
 	fmt.Println("speed_limit=?")
-	if b.scanner.Scan() {
-		speedLimit, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		road.SpeedLimit = speedLimit
-	} else {
-		return nil, b.scanner.Err()
+	road.SpeedLimit, err = b.readIntInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("length=?")
-	if b.scanner.Scan() {
-		length, err := strconv.Atoi(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		road.Length = length
-	} else {
-		return nil, b.scanner.Err()
+	road.Length, err = b.readIntInput()
+	if err != nil {
+		return nil, err
 	}
 
 	fmt.Println("bi_directional=?")
-	if b.scanner.Scan() {
-		biDirectional, err := strconv.ParseBool(b.scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		road.BiDirectional = biDirectional
-	} else {
-		return nil, b.scanner.Err()
+	road.BiDirectional, err = b.readIntInput()
+	if err != nil {
+		return nil, err
+	}
+	if road.BiDirectional != 0 && road.BiDirectional != 1 {
+		return nil, ErrInvalidInput
 	}
 
 	return road, nil
 
 }
 
-func (b *bundle) handleDelete() {
+func (b *bundle) readStringInput() (string, error) {
+	if b.scanner.Scan() {
+		return b.scanner.Text(), nil
+	}
+	return "", b.scanner.Err()
+}
+
+func (b *bundle) readIntInput() (int, error) {
+
+	if b.scanner.Scan() {
+		num, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return 0, err
+		}
+		return num, nil
+	}
+	return 0, b.scanner.Err()
+}
+
+func (b *bundle) handleDelete() error {
+
+	selectedModel, err := b.handleSelectModel()
+	if err != nil {
+		return err
+	}
+
+	id, err := b.readIntInput()
+	if err != nil {
+		return err
+	}
+
+	switch selectedModel {
+	case CityModel:
+		err = b.agencyService.DeleteCity(id)
+		if err != nil {
+			fmt.Printf("City with id %d not found!\n", id)
+		} else {
+			fmt.Printf("City:%d deleted!\n", id)
+		}
+	case RoadModel:
+		err = b.agencyService.DeleteRoad(id)
+		if err != nil {
+			fmt.Printf("Road with id %d not found!\n", id)
+		} else {
+			fmt.Printf("Road:%d deleted!\n", id)
+		}
+	default:
+		return errors.New("invalid input")
+	}
+
+	return nil
 
 }
 
-func (b *bundle) handlePath() {
+func (b *bundle) handlePath() error {
+	input, err := b.readStringInput()
+	if err != nil {
+		return err
+	}
 
+	splitInput := strings.Split(input, ":")
+	if len(splitInput) != 2 {
+		return ErrInvalidInput
+	}
+	sourceID, err := strconv.Atoi(splitInput[0])
+	if err != nil {
+		return err
+	}
+	destinationID, err := strconv.Atoi(splitInput[1])
+	if err != nil {
+		return err
+	}
+	fmt.Println("source id:", sourceID, ", destination id:", destinationID)
+	return b.agencyService.GetPath(sourceID, destinationID)
 }
