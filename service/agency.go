@@ -15,14 +15,6 @@ type (
 		CityRepo repo.CityRepo
 		RoadRepo repo.RoadRepo
 	}
-
-	TravelAgencyService interface {
-		AddCity(city *model.City) error
-		AddRoad(road *model.Road) error
-		DeleteCity(id int) error
-		DeleteRoad(id int) error
-		GetPath(sourceID, destinationID int) error
-	}
 )
 
 var _ TravelAgencyService = (*agencyService)(nil)
@@ -47,7 +39,7 @@ func (a *agencyService) AddCity(city *model.City) error {
 func (a *agencyService) AddRoad(road *model.Road) error {
 
 	// Update road if already exist
-	if a.cityRepo.IsExist(road.ID) {
+	if a.roadRepo.IsExist(road.ID) {
 		return a.roadRepo.UpdateRoad(road)
 	}
 
@@ -62,6 +54,20 @@ func (a *agencyService) DeleteRoad(id int) error {
 	return a.roadRepo.DeleteRoad(id)
 }
 
-func (a *agencyService) GetPath(sourceID, destinationID int) error {
-	return nil
+func (a *agencyService) GetPath(sourceID, destinationID int) ([]Path, error) {
+	roads, err := a.roadRepo.GetRoadByCities(sourceID, destinationID)
+	if err != nil {
+		return nil, err
+	}
+	var availableRoads []Path
+	for _, road := range roads {
+		path := Path{
+			SourceCityName:      a.cityRepo.GetCityByID(sourceID).Name,
+			DestinationCityName: a.cityRepo.GetCityByID(destinationID).Name,
+			RoadName:            road.Name,
+			TravelTime:          float32(road.Length) / float32(road.SpeedLimit),
+		}
+		availableRoads = append(availableRoads, path)
+	}
+	return availableRoads, nil
 }

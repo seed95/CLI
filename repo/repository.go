@@ -8,6 +8,7 @@ type RoadRepo interface {
 	DeleteRoad(id int) error
 	GetRoadByID(id int) *model.Road
 	IsExist(id int) bool
+	GetRoadByCities(sourceID, destID int) ([]model.Road, error)
 }
 
 type CityRepo interface {
