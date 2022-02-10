@@ -1,6 +1,7 @@
 package service
 
 import (
+	"time"
 	"travel-agency/model"
 )
 
@@ -17,6 +18,6 @@ type (
 		SourceCityName      string
 		DestinationCityName string
 		RoadName            string
-		TravelTime          float32
+		TravelTime          time.Duration
 	}
 )

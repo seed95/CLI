@@ -64,8 +64,18 @@ func main() {
 	arakTehran.Length = 240
 	arakTehran.BiDirectional = 1
 
+	var qomTehran = new(model.Road)
+	qomTehran.ID = 3
+	qomTehran.Name = "Qom-Tehran"
+	qomTehran.From = 1
+	qomTehran.To = 2
+	qomTehran.Through = []int{}
+	qomTehran.SpeedLimit = 120
+	qomTehran.Length = 140
+	qomTehran.BiDirectional = 1
+
 	var qomKashan = new(model.Road)
-	qomKashan.ID = 3
+	qomKashan.ID = 4
 	qomKashan.Name = "Qom-Kashan"
 	qomKashan.From = 2
 	qomKashan.To = 6
@@ -83,9 +93,16 @@ func main() {
 
 	agencyService.AddRoad(khorramabadArak)
 	agencyService.AddRoad(arakTehran)
+	agencyService.AddRoad(qomTehran)
 	agencyService.AddRoad(qomKashan)
 
+	agencyService.GetPath(1, 2)
+	agencyService.GetPath(1, 3)
+	agencyService.GetPath(2, 3)
 	agencyService.GetPath(4, 5)
+	agencyService.GetPath(2, 5)
+	agencyService.GetPath(4, 6)
+	agencyService.GetPath(2, 6)
 
 	handlerSetting := handler.Setting{AgencyService: agencyService}
 	cli := handler.New(&handlerSetting)

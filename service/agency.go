@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"time"
 	"travel-agency/model"
 	"travel-agency/repo"
 )
@@ -61,11 +63,12 @@ func (a *agencyService) GetPath(sourceID, destinationID int) ([]Path, error) {
 	}
 	var availableRoads []Path
 	for _, road := range roads {
+		travelTime, _ := time.ParseDuration(fmt.Sprintf("%dm", int64(float32(road.Length)/float32(road.SpeedLimit)*60)))
 		path := Path{
 			SourceCityName:      a.cityRepo.GetCityByID(sourceID).Name,
 			DestinationCityName: a.cityRepo.GetCityByID(destinationID).Name,
 			RoadName:            road.Name,
-			TravelTime:          float32(road.Length) / float32(road.SpeedLimit),
+			TravelTime:          travelTime,
 		}
 		availableRoads = append(availableRoads, path)
 	}
