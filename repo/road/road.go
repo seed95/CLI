@@ -7,6 +7,7 @@ import (
 
 type (
 	roadRepo struct {
+		roads map[int]*model.Road
 	}
 )
 
@@ -16,14 +17,22 @@ func New() repo.RoadRepo {
 	return &roadRepo{}
 }
 
-func (c *roadRepo) AddRoad(road *model.Road) {
-
+func (r *roadRepo) AddRoad(road *model.Road) {
+	r.roads = make(map[int]*model.Road)
+	r.roads[road.ID] = road
 }
 
-func (c *roadRepo) DeleteRoad() {
-
+func (r *roadRepo) UpdateRoad(road *model.Road) {
+	r.roads[road.ID] = road
 }
 
-func (c *roadRepo) UpdateRoad() {
+func (r *roadRepo) DeleteRoad(id int) {
+	delete(r.roads, id)
+}
 
+func (r *roadRepo) GetRoadByID(id int) *model.Road {
+	if road, ok := r.roads[id]; ok {
+		return road
+	}
+	return nil
 }

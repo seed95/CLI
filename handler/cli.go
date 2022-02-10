@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"travel-agency/model"
 	"travel-agency/service"
 )
@@ -186,6 +187,77 @@ func (b *bundle) getRoadModel() (*model.Road, error) {
 	fmt.Println("name=?")
 	if b.scanner.Scan() {
 		road.Name = b.scanner.Text()
+	} else {
+		return nil, b.scanner.Err()
+	}
+
+	fmt.Println("from=?")
+	if b.scanner.Scan() {
+		from, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return nil, err
+		}
+		road.From = from
+	} else {
+		return nil, b.scanner.Err()
+	}
+
+	fmt.Println("to=?")
+	if b.scanner.Scan() {
+		to, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return nil, err
+		}
+		road.To = to
+	} else {
+		return nil, b.scanner.Err()
+	}
+
+	fmt.Println("through=?")
+	if b.scanner.Scan() {
+		splitted := strings.Split(strings.Replace(strings.Replace(b.scanner.Text(), "[", "", -1), "]", "", -1), ",")
+		through := make([]int, len(splitted))
+		var err error
+		for i, v := range splitted {
+			through[i], err = strconv.Atoi(v)
+			if err != nil {
+				return nil, err
+			}
+		}
+		road.Through = through
+	} else {
+		return nil, b.scanner.Err()
+	}
+
+	fmt.Println("speed_limit=?")
+	if b.scanner.Scan() {
+		speedLimit, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return nil, err
+		}
+		road.SpeedLimit = speedLimit
+	} else {
+		return nil, b.scanner.Err()
+	}
+
+	fmt.Println("length=?")
+	if b.scanner.Scan() {
+		length, err := strconv.Atoi(b.scanner.Text())
+		if err != nil {
+			return nil, err
+		}
+		road.Length = length
+	} else {
+		return nil, b.scanner.Err()
+	}
+
+	fmt.Println("bi_directional=?")
+	if b.scanner.Scan() {
+		biDirectional, err := strconv.ParseBool(b.scanner.Text())
+		if err != nil {
+			return nil, err
+		}
+		road.BiDirectional = biDirectional
 	} else {
 		return nil, b.scanner.Err()
 	}

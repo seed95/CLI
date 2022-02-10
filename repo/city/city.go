@@ -7,6 +7,7 @@ import (
 
 type (
 	cityRepo struct {
+		cities map[int]*model.City
 	}
 )
 
@@ -17,13 +18,21 @@ func New() repo.CityRepo {
 }
 
 func (c *cityRepo) AddCity(city *model.City) {
-
+	c.cities = make(map[int]*model.City)
+	c.cities[city.ID] = city
 }
 
-func (c *cityRepo) UpdateCity() {
-
+func (c *cityRepo) UpdateCity(city *model.City) {
+	c.cities[city.ID] = city
 }
 
-func (c *cityRepo) DeleteCity() {
+func (c *cityRepo) DeleteCity(id int) {
+	delete(c.cities, id)
+}
 
+func (c *cityRepo) GetCityByID(id int) *model.City {
+	if city, ok := c.cities[id]; ok {
+		return city
+	}
+	return nil
 }
