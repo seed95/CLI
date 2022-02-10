@@ -54,6 +54,14 @@ func (r *roadRepo) DeleteRoad(id int) error {
 	return nil
 }
 
+func (r *roadRepo) IsExist(id int) bool {
+	_, err := r.GetRoadIndexWithID(id)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func (r *roadRepo) GetRoadByID(id int) *model.Road {
 	//if road, ok := r.roads[id]; ok {
 	//	return road

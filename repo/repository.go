@@ -7,6 +7,7 @@ type RoadRepo interface {
 	UpdateRoad(road *model.Road) error
 	DeleteRoad(id int) error
 	GetRoadByID(id int) *model.Road
+	IsExist(id int) bool
 }
 
 type CityRepo interface {
@@ -14,4 +15,5 @@ type CityRepo interface {
 	UpdateCity(city *model.City) error
 	DeleteCity(id int) error
 	GetCityByID(id int) *model.City
+	IsExist(id int) bool
 }

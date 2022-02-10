@@ -23,37 +23,45 @@ func New() repo.CityRepo {
 	return &cityRepo{}
 }
 
-func (c *cityRepo) AddCity(city *model.City) error {
+func (r *cityRepo) AddCity(city *model.City) error {
 	// Found city with this id
-	if _, err := c.GetCityIndexByID(city.ID); err == nil {
+	if _, err := r.GetCityIndexByID(city.ID); err == nil {
 		return ErrDuplicate
 	}
-	c.cities = append(c.cities, *city)
+	r.cities = append(r.cities, *city)
 	return nil
 }
 
-func (c *cityRepo) UpdateCity(city *model.City) error {
-	index, err := c.GetCityIndexByID(city.ID)
+func (r *cityRepo) UpdateCity(city *model.City) error {
+	index, err := r.GetCityIndexByID(city.ID)
 	if err != nil {
 		return err
 	}
-	c.cities[index] = *city
+	r.cities[index] = *city
 	return nil
 }
 
-func (c *cityRepo) DeleteCity(id int) error {
-	index, err := c.GetCityIndexByID(id)
+func (r *cityRepo) DeleteCity(id int) error {
+	index, err := r.GetCityIndexByID(id)
 	if err != nil {
 		return err
 	}
 
-	c.cities[index] = c.cities[len(c.cities)-1]
-	c.cities = c.cities[:len(c.cities)-1]
+	r.cities[index] = r.cities[len(r.cities)-1]
+	r.cities = r.cities[:len(r.cities)-1]
 	return nil
 }
 
-func (c *cityRepo) GetCityByID(id int) *model.City {
-	for _, c := range c.cities {
+func (r *cityRepo) IsExist(id int) bool {
+	_, err := r.GetCityIndexByID(id)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func (r *cityRepo) GetCityByID(id int) *model.City {
+	for _, c := range r.cities {
 		if c.ID == id {
 			return &c
 		}
@@ -61,8 +69,8 @@ func (c *cityRepo) GetCityByID(id int) *model.City {
 	return nil
 }
 
-func (c *cityRepo) GetCityIndexByID(id int) (int, error) {
-	for index, c := range c.cities {
+func (r *cityRepo) GetCityIndexByID(id int) (int, error) {
+	for index, c := range r.cities {
 		if c.ID == id {
 			return index, nil
 		}
