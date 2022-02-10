@@ -54,10 +54,10 @@ func New(s *Setting) Runner {
 
 func (b *bundle) Run() error {
 
-	printMainMenu()
 	var input string
 	for b.scanner.Scan() {
 
+		printMainMenu()
 		// Get input and check is valid number
 		input = b.scanner.Text()
 		num, err := strconv.Atoi(input)
@@ -89,8 +89,6 @@ func (b *bundle) Run() error {
 		default:
 			printInvalidInput()
 		}
-
-		printMainMenu()
 	}
 
 	return b.scanner.Err()
@@ -266,20 +264,22 @@ func (b *bundle) getRoadModel() (road *model.Road, err error) {
 	}
 
 	fmt.Println("through=?")
-	if b.scanner.Scan() {
-		splitted := strings.Split(strings.Replace(strings.Replace(b.scanner.Text(), "[", "", -1), "]", "", -1), ",")
-		through := make([]int, len(splitted))
-		var err error
-		for i, v := range splitted {
-			through[i], err = strconv.Atoi(v)
-			if err != nil {
-				return nil, err
-			}
-		}
-		road.Through = through
-	} else {
-		return nil, b.scanner.Err()
+	input, err := b.readStringInput()
+	if err != nil {
+		return nil, err
 	}
+	input = strings.Replace(input, "[", "", -1)
+	input = strings.Replace(input, "]", "", -1)
+	strNum := strings.Split(input, ",")
+	var through []int
+	for _, v := range strNum {
+		num, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, err
+		}
+		through = append(through, num)
+	}
+	road.Through = through
 
 	fmt.Println("speed_limit=?")
 	road.SpeedLimit, err = b.readIntInput()
@@ -378,6 +378,15 @@ func (b *bundle) handlePath() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("source id:", sourceID, ", destination id:", destinationID)
-	return b.agencyService.GetPath(sourceID, destinationID)
+
+	path, err := b.agencyService.GetPath(sourceID, destinationID)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range path {
+		fmt.Printf("%s:%s via Road %s: Takes\n", p.SourceCityName, p.DestinationCityName, p.RoadName)
+	}
+
+	return nil
 }
